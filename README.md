@@ -1,6 +1,15 @@
-# Whisperer
+# Whisperer Last UpDate:20250319
 
 Whisperer is a Python application that records audio when a specific key is held down, and sends the audio to OpenAI's Whisper ASR system for transcription when another key is tapped. It then types the transcription into the active window.
+
+## **Latest Version 20250319**: whisperer-NL-CR-SB_Output-PG
+
+This is the newest and best version of Whisperer, featuring:
+- Text transcription
+- Dutch translation (NL)
+- ChatGPT response generation (CR) 
+- Search block formatting for medical databases (SB)
+- Prompt generation/improvement for LLMs (PG)
 
 ## Prerequisites
 
@@ -16,11 +25,12 @@ Whisperer is a Python application that records audio when a specific key is held
 - scipy
 - pyperclip
 - pyinstaller (if you want to create an executable)
+- dotenv (for environment variable management)
 
 You can install these dependencies using pip:
 
 ```
-pip install sounddevice numpy openai pynput scipy pyperclip pyinstaller
+pip install sounddevice numpy openai pynput scipy pyperclip pyinstaller dotenv
 ```
 
 On Linux, also run:
@@ -34,47 +44,9 @@ sudo apt-get install xclip
 1. Clone the repository.
 2. Create a file named openai_api_key.txt in the root directory of the project.
 3. Paste your OpenAI API key into openai_api_key.txt.
+4. Make an excutional file
+5. place executional file in the same folder as the openai_api_key.tx file (i keep mine in a desk top folder)
 
-
-## Usage
-
-### Running the Python Script
-
-Run whisperer.py to start the application.
-
-```
-python whisperer.py
-```
-
-To quit the application, press ctrl + c.
-
-- Hold down right ctrl button to start recording audio.
-- Release right ctrl button to stop recording audio.
-
-If you want to translate the recorded audio to Dutch, tap the right shift button while recording.
-
-## Customizing the Code
-
-You can modify the Python code to customize functionality according to your needs:
-
-### Changing the Translation Language
-
-By default, the application translates to Dutch. To change the translation language:
-
-1. Open `whisperer.py` in a text editor
-2. Find the section where translation is handled (look for references to "Dutch" or language settings)
-3. Change the language parameter to your desired language (e.g., "French", "Spanish", "German", etc.)
-4. Save the file
-
-### Other Customizations
-
-You can also modify:
-- Key bindings (change which keys trigger recording or translation)
-- Audio settings (sample rate, channels, etc.)
-- Output behavior
-- UI elements
-
-After making any changes, you can either run the Python script directly or rebuild the executable as described below.
 
 ## Building an Executable
 
