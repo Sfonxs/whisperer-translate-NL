@@ -1,0 +1,114 @@
+---
+description: Keyboard input handling patterns and key binding conventions
+---
+
+# Keyboard Handling Guidelines
+
+## Key Bindings Convention
+
+### Current Bindings
+- **Record**: `Key.ctrl_r` (Right CTRL) - Hold to record
+- **Translate**: `Key.shift_r` (Right SHIFT) - Tap while recording
+- **Response**: `Key.enter` or `KeyCode.from_char('/')` - Tap while recording
+
+### Why Right-Side Keys?
+- Left-side modifiers often conflict with system shortcuts
+- Right CTRL is rarely used, making it ideal for custom functionality
+- Reduces accidental triggering during normal typing
+
+## Input Handling Pattern
+
+### Listener Setup
+```python
+from pynput.keyboard import Listener, Controller, Key, KeyCode
+
+with Listener(on_press=on_press, on_release=on_release) as listener:
+    listener.join()
+```
+
+### Press Handler
+```python
+def on_press(key):
+    global recording, translate, get_response
+    
+    # Start recording
+    if key == record_key and not recording:
+        recording = True
+        translate = False
+        get_response = False
+        # Initialize audio stream
+    
+    # Modifier keys while recording
+    if recording and key == translate_key:
+        translate = True
+    
+    if recording and (key == response_key or key == response_key_alt):
+        get_response = True
+```
+
+### Release Handler
+```python
+def on_release(key):
+    global recording
+    
+    if key == record_key:
+        recording = False
+        # Process recorded audio
+        # Stop audio stream
+```
+
+## Text Output Methods
+
+### Method 1: Direct Typing (English-safe)
+```python
+keyboard = Controller()
+keyboard.type(transcript_text)
+```
+
+### Method 2: Clipboard Paste (Special Characters)
+```python
+allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,;:!?-\'_')
+special_chars = set(transcript_text) - allowed_chars
+
+if len(special_chars) > 0 or force_clipboard:
+    pyperclip.copy(transcript_text)
+    keyboard.press(Key.ctrl)
+    keyboard.press('v')
+    keyboard.release('v')
+    keyboard.release(Key.ctrl)
+```
+
+## State Machine Logic
+
+### States
+1. **Idle**: Waiting for record key
+2. **Recording**: Audio stream active, listening for modifiers
+3. **Processing**: Sending to API and outputting result
+
+### Flag Management
+- Reset `translate` and `get_response` at start of new recording
+- Use `force_clipboard` for short recordings
+- Ensure flags are mutually exclusive (elif pattern)
+
+## Platform Considerations
+
+### Linux
+- Requires X11 or Wayland support
+- Uses python-xlib backend
+- May need accessibility permissions
+
+### Windows
+- Uses Windows API hooks
+- Generally reliable without extra permissions
+
+### macOS
+- Requires Accessibility permissions
+- User must enable app in Security & Privacy settings
+- May need code signing for distribution
+
+## Best Practices
+- Avoid consuming keypresses (let them pass through) except for record key
+- Provide clear console feedback for key events
+- Use KeyCode.from_char() for character keys
+- Use Key.* constants for modifier and special keys
+- Test with different keyboard layouts

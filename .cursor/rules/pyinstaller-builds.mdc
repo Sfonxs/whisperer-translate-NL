@@ -1,0 +1,70 @@
+---
+globs: *.spec
+description: PyInstaller executable build configuration and best practices
+---
+
+# PyInstaller Build Configuration
+
+## Build Files
+- [whisperer.spec](mdc:whisperer.spec) - Core version build config
+- [whisperer-translate-to-dutch.spec](mdc:whisperer-translate-to-dutch.spec) - Dutch translation build
+
+## Building Executables
+
+### Using Existing Spec File
+```bash
+pyinstaller whisperer.spec
+```
+
+### Creating New Spec File
+```bash
+pyinstaller --name your_custom_name --onefile --add-data "openai_api_key.txt;." whisperer.py
+```
+
+## Critical Requirements
+
+### API Key File Must Be Co-Located
+The executable **requires** `openai_api_key.txt` in the same directory as the executable. This file is **NOT** bundled into the executable for security reasons.
+
+### Resource Path Pattern
+Always use the resource_path helper in Python code:
+```python
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS  # PyInstaller temp folder
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+```
+
+## Distribution Checklist
+1. Build executable using PyInstaller
+2. Copy executable from `dist/` folder
+3. Create `openai_api_key.txt` in same directory as executable
+4. Test run to verify API key is being read correctly
+
+## Platform Considerations
+
+### Linux
+- May need to include audio libraries
+- Ensure xclip is installed on target system
+- Consider static compilation for better portability
+
+### Windows
+- `.exe` extension
+- May include platform-specific audio handling (winsound)
+- Path separators use semicolon in --add-data
+
+### macOS
+- Special keyboard permissions required
+- Test on target macOS version for compatibility
+
+## Build Output
+- Executable location: `dist/<app-name>`
+- Build files: `build/` directory (can be deleted after build)
+- Temporary PyInstaller files in `build/` and `__pycache__/`
+
+## Common Issues
+- Missing dependencies: Add to spec file or requirements.txt
+- Audio library errors: Ensure sounddevice/soundfile are properly included
+- Tkinter errors: May need system-level python3-tk package

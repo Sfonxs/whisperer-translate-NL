@@ -1,0 +1,78 @@
+---
+globs: *.md
+---
+
+# Documentation Standards
+
+## File Organization
+- [README.md](mdc:README.md) - Main user-facing documentation
+- [sven-install.md](mdc:sven-install.md) - Linux-specific installation
+- `.docs/` directory - Extended documentation (optional)
+
+## Documentation Structure
+
+### README.md
+Should contain:
+1. **Project title and last update date**
+2. **Brief description** - What the app does
+3. **Latest version** - Which file is recommended
+4. **Prerequisites** - System requirements
+5. **Dependencies** - Python packages
+6. **Setup instructions** - Step by step
+7. **Building executables** - PyInstaller usage
+8. **Running the app** - Usage instructions
+9. **Notes** - Important technical details
+
+### Installation Guides
+Use bash code blocks for Linux commands:
+```bash
+# Comments explain what each command does
+sudo apt install package-name
+```
+
+Include:
+- System package installation
+- Virtual environment setup
+- Python package installation
+- API key configuration
+- Desktop launcher creation (optional)
+
+## Code Comments
+
+### File Headers
+Each Python file should start with a comprehensive comment explaining:
+- Purpose of the script
+- Key libraries used
+- Main functionality overview
+- Special features or flags
+
+Example from [whisperer-translate-to-dutch.py](mdc:whisperer-translate-to-dutch.py):
+```python
+# This script is a voice-to-text application that uses the OpenAI API to transcribe audio recordings.
+# It imports necessary libraries for handling audio input, environment variables, and keyboard events.
+# The script initializes global variables to manage the recording state, audio data, and other flags.
+```
+
+### Inline Comments
+- Explain complex logic
+- Document key bindings and their purposes
+- Note platform-specific code
+- Clarify global state management
+
+## Version History
+Update the "Last UpDate" in README.md when making significant changes:
+- Format: YYYYMMDD (e.g., 20250319)
+- Note major features in version section
+
+## User Instructions
+- Use clear, simple language
+- Include keyboard shortcuts prominently
+- Explain platform differences (Linux, Windows, macOS)
+- Provide troubleshooting tips
+
+## Technical Notes Section
+Document:
+- Audio specifications (sample rate, format)
+- Recording constraints (minimum duration)
+- Character handling limitations
+- API error handling status

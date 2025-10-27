@@ -1,0 +1,103 @@
+---
+description: Audio recording and processing patterns used in Whisperer
+---
+
+# Audio Processing Guidelines
+
+## Audio Specifications
+- **Sample Rate**: 16,000 Hz (16kHz) - optimal for Whisper API
+- **Channels**: 1 (mono)
+- **Format**: FLAC for file output
+- **Output File**: [output.flac](mdc:output.flac)
+
+## Recording Flow
+
+### 1. Stream Initialization
+```python
+stream = sd.InputStream(
+    callback=callback,
+    channels=1,
+    samplerate=16000
+)
+stream.start()
+```
+
+### 2. Data Collection
+```python
+def callback(indata, frames, time, status):
+    global audio_data
+    if recording:
+        if indata.shape[1] == 1:  # Verify mono
+            audio_data.append(indata.copy())
+```
+
+### 3. Processing on Release
+```python
+# Concatenate audio chunks
+audio_data_np = np.concatenate(audio_data, axis=0)
+
+# Calculate duration
+audio_data_length = len(audio_data_np) / 16000
+
+# Write to file
+soundfile.write('output.flac', audio_data_np, 16000, format='flac')
+```
+
+## Recording Constraints
+
+### Minimum Duration
+- **1 second**: Required minimum for Whisper transcription
+- **0.5 seconds**: Triggers force_clipboard mode (too short for reliable transcription)
+
+### State Management
+Global flags control recording behavior:
+- `recording`: Currently recording audio
+- `translate`: Translation requested during recording
+- `get_response`: ChatGPT response requested
+- `force_clipboard`: Use clipboard instead of typing
+
+## Best Practices
+
+### Memory Management
+- Clear `audio_data = []` at start of each recording
+- Stop and close stream properly to prevent memory leaks
+- Check for empty audio_data before processing
+
+### Stream Lifecycle
+```python
+# On key press
+stream = sd.InputStream(callback=callback, channels=1, samplerate=16000)
+stream.start()
+
+# On key release
+if stream is not None:
+    stream.stop()
+    stream.close()
+    stream = None
+```
+
+### Error Handling
+- Validate audio data shape before appending
+- Check for minimum recording length before API calls
+- Handle empty recordings gracefully
+
+## Platform-Specific Considerations
+
+### Linux
+- Requires `portaudio19-dev` system package
+- May need PulseAudio or ALSA configuration
+
+### Windows
+- Uses DirectSound/WASAPI by default
+- May include winsound for system sounds
+
+### macOS
+- CoreAudio backend
+- May need microphone permissions in System Preferences
+
+## Future Improvements
+Consider adding:
+- Real-time audio level monitoring
+- Automatic noise reduction
+- Multiple audio device selection
+- Recording pause/resume functionality

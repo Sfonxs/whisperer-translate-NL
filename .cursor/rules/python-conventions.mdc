@@ -1,0 +1,63 @@
+---
+globs: *.py
+---
+
+# Python Coding Conventions for Whisperer
+
+## Code Style
+- Use global variables for application state (recording, audio_data, stream, translate, get_response, force_clipboard)
+- Single-file applications preferred over modular architecture
+- Extensive comments explaining functionality at the top of files
+- Thread-safe operations when dealing with UI updates
+
+## Error Handling
+- Graceful handling of missing API key files
+- Try-except blocks around platform-specific imports (e.g., winsound)
+- User-friendly error messages printed to console
+- Always inform user about missing dependencies or files
+
+## Audio Processing Patterns
+```python
+# Standard audio callback structure
+def callback(indata, frames, time, status):
+    global audio_data
+    if recording:
+        if indata.shape[1] == 1:  # Check if mono
+            audio_data.append(indata.copy())
+```
+
+## Key Listener Pattern
+```python
+# Use pynput's Listener with on_press/on_release
+with Listener(on_press=on_press, on_release=on_release) as listener:
+    listener.join()
+```
+
+## Resource Path Helper
+Always use this pattern for PyInstaller compatibility:
+```python
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+```
+
+## Text Processing
+- Replace "New paragraph." with "\n\n" in transcripts
+- Detect special characters that can't be typed with keyboard
+- Use clipboard (pyperclip) + CTRL-V for non-English characters
+- Define allowed_chars set for character validation
+
+## Imports Organization
+Standard import order:
+1. System libraries (sys, os)
+2. Data processing (numpy)
+3. OpenAI API
+4. Clipboard (pyperclip)
+5. Input handling (pynput)
+6. Audio (soundfile, sounddevice)
+7. Environment (dotenv)
+8. GUI (tkinter) - optional
+9. Platform-specific (winsound) - with try-except

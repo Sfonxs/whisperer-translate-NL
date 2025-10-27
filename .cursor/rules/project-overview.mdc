@@ -1,0 +1,47 @@
+---
+alwaysApply: true
+---
+
+# Whisperer Voice-to-Text Project Overview
+
+## Project Purpose
+Whisperer is a Python application that records audio when a specific key is held down, transcribes it using OpenAI's Whisper ASR, and types the transcription into the active window.
+
+## Main Entry Points
+- **Latest/Recommended Version**: [whisperer-NL-CR-SB-PG.py](mdc:whisperer-NL-CR-SB-PG.py) - Full-featured version with translation, ChatGPT response, and prompt generation
+- **Core Version**: [whisperer.py](mdc:whisperer.py) - Basic transcription
+- **Dutch Translation**: [whisperer-translate-to-dutch.py](mdc:whisperer-translate-to-dutch.py)
+- **English Translation**: [whisperer-translate-to-english.py](mdc:whisperer-translate-to-english.py)
+
+## Key Features
+1. **Voice Recording**: Hold right CTRL to record audio
+2. **Translation**: Press right SHIFT while recording to translate to Dutch
+3. **ChatGPT Integration**: Press ENTER while recording to get AI responses
+4. **Smart Clipboard**: Auto-detects special characters and uses clipboard when needed
+5. **Cross-Platform**: Works on Windows, Mac, and Linux
+
+## Critical Dependencies
+- **OpenAI API**: Requires API key in [openai_api_key.txt](mdc:openai_api_key.txt)
+- **Audio**: sounddevice, soundfile, numpy (16kHz sample rate)
+- **Input/Output**: pynput (keyboard), pyperclip (clipboard)
+- **Build**: PyInstaller for creating executables
+
+## Important Files
+- [requirements.txt](mdc:requirements.txt) - Python dependencies
+- [README.md](mdc:README.md) - User documentation
+- [sven-install.md](mdc:sven-install.md) - Linux installation instructions
+- `.spec` files - PyInstaller build configurations
+
+## Audio Processing
+- Sample rate: 16,000 Hz
+- Format: FLAC (output.flac)
+- Minimum recording length: 1 second
+- Short recordings (<0.5s) force clipboard usage
+
+## Key Bindings
+- Right CTRL: Record toggle
+- Right SHIFT: Enable Dutch translation
+- ENTER or '/': Get ChatGPT response
+
+## Environment Setup
+Uses virtual environment ([venv/](mdc:venv/)) for dependency isolation. Always activate before running or building.

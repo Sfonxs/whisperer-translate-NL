@@ -1,0 +1,71 @@
+---
+description: Guidelines for OpenAI API integration and usage patterns
+---
+
+# OpenAI API Integration Guidelines
+
+## API Key Management
+- **NEVER** hardcode API keys in source files
+- Always read from [openai_api_key.txt](mdc:openai_api_key.txt)
+- Use `resource_path()` helper for PyInstaller compatibility
+- Check for file existence before attempting to read
+
+```python
+api_key_path = resource_path('openai_api_key.txt')
+with open(api_key_path, 'r') as file:
+    openai.api_key = file.read().strip()
+```
+
+## Whisper Transcription
+- Model: `whisper-1`
+- Input: FLAC audio file at 16kHz
+- Use new OpenAI client pattern:
+
+```python
+client = openai.OpenAI(api_key=openai.api_key)
+transcript = client.audio.transcriptions.create(
+    model="whisper-1",
+    file=file,
+)
+transcript_text = transcript.text
+```
+
+## ChatGPT Translation (Dutch)
+- Model: `gpt-4o-mini` (cost-effective)
+- Avoid formal "uw" form (old-fashioned)
+- System message specifies translation-only output
+
+```python
+result = openai.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": "You translate the input text to Dutch. You only output the translated text and nothing else. Avoid using the uw form as this is old fashioned"},
+        {"role": "user", "content": transcript_text},
+    ]
+)
+```
+
+## ChatGPT Response Generation
+- Model: `gpt-4o-mini`
+- Direct, helpful responses
+- System message for assistant behavior
+
+```python
+result = openai.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant. Respond directly to the user's query with useful information."},
+        {"role": "user", "content": transcript_text},
+    ]
+)
+```
+
+## Error Handling
+- No explicit Whisper API error handling in current implementation
+- Rely on try-except at main() level
+- Print status messages to console for user feedback
+
+## Rate Limiting & Costs
+- Be mindful of API costs when adding features
+- Use gpt-4o-mini for cost-effective operations
+- Consider adding error handling for rate limits in future
