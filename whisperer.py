@@ -56,6 +56,26 @@ def set_status(text):
     except Exception as e:
         print(f"UI update error: {str(e)}")
 
+def play_tone(frequency=800, duration=0.1, volume=0.3):
+    """Play a synthesized tone in a background thread to avoid blocking."""
+    def _play():
+        try:
+            sample_rate = 44100
+            t = np.linspace(0, duration, int(sample_rate * duration), False)
+            # Generate a sine wave
+            tone = np.sin(frequency * t * 2 * np.pi)
+            # Apply volume
+            tone = tone * volume
+            # Play the tone
+            sd.play(tone, sample_rate)
+            sd.wait()
+        except Exception as e:
+            # Silently ignore audio playback errors
+            pass
+    
+    # Play in a background thread to avoid blocking
+    threading.Thread(target=_play, daemon=True).start()
+
 def init_ui():
     """Initialize the Tkinter UI if needed"""
     global root, status_label
@@ -150,6 +170,9 @@ def main():
                 recording = True
                 translate = False
                 set_status("Recording...")
+                
+                # Play start recording tone (higher pitch)
+                play_tone(frequency=800, duration=0.1)
 
                 audio_data = []
               
@@ -162,25 +185,17 @@ def main():
                 print("Translate key pressed.")
                 translate = True
               
-        def on_release(key):
-            global recording, stream, translate, force_clipboard
-
-            if key == record_key:
-                recording = False
-                set_status("Idle")
-
-                # Stop and close InputStream
-                if stream is not None:
-                    stream.stop()
-                    stream.close()
-                    stream = None
-
-                if audio_data == []:
+        def process_audio(audio_data_copy, should_translate, keyboard_controller):
+            """Process audio in a background thread to avoid blocking new recordings."""
+            global force_clipboard
+            
+            try:
+                if audio_data_copy == []:
                     print("No audio data recorded.")
                     return
               
                 # Concatenate all audio data into one NumPy array
-                audio_data_np = np.concatenate(audio_data, axis=0)
+                audio_data_np = np.concatenate(audio_data_copy, axis=0)
 
                 # Get length of audio data in seconds
                 audio_data_length = len(audio_data_np) / 16000
@@ -212,9 +227,7 @@ def main():
                     print("Transcript:")
                     print(transcript_text)
 
-                    if translate:
-                        translate = False
-
+                    if should_translate:
                         print("Translating transcript to Dutch...")
                         result = openai.chat.completions.create(
                             model="gpt-4o-mini",
@@ -238,14 +251,47 @@ def main():
                         pyperclip.copy(transcript_text)
 
                         # Simulate CTRL-V to paste the text
-                        keyboard.press(Key.ctrl)
-                        keyboard.press('v')
-                        keyboard.release('v')
-                        keyboard.release(Key.ctrl)
+                        keyboard_controller.press(Key.ctrl)
+                        keyboard_controller.press('v')
+                        keyboard_controller.release('v')
+                        keyboard_controller.release(Key.ctrl)
                         force_clipboard = False
                     else:  
                         # Since there are no accents, we can just use the standard type command.
-                        keyboard.type(transcript_text)
+                        keyboard_controller.type(transcript_text)
+            except Exception as e:
+                print(f"Error processing audio: {str(e)}")
+        
+        def on_release(key):
+            global recording, stream, translate, force_clipboard
+
+            if key == record_key:
+                recording = False
+                set_status("Idle")
+                
+                # Play stop recording tone (lower pitch)
+                play_tone(frequency=400, duration=0.1)
+
+                # Stop and close InputStream
+                if stream is not None:
+                    stream.stop()
+                    stream.close()
+                    stream = None
+
+                # Create a copy of the audio data and translate flag for the background thread
+                audio_data_copy = audio_data.copy()
+                should_translate = translate
+                
+                # Reset translate flag immediately
+                translate = False
+                
+                # Process audio in background thread to allow immediate new recordings
+                processing_thread = threading.Thread(
+                    target=process_audio, 
+                    args=(audio_data_copy, should_translate, keyboard),
+                    daemon=True
+                )
+                processing_thread.start()
               
         # Start listening for key events
         with Listener(on_press=on_press, on_release=on_release) as listener:
