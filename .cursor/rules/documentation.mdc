@@ -1,4 +1,5 @@
 ---
+globs: *.md
 alwaysApply: false
 ---
 # Documentation Standards
