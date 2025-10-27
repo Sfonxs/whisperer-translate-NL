@@ -1,7 +1,6 @@
 ---
-globs: *.md
+alwaysApply: false
 ---
-
 # Documentation Standards
 
 ## File Organization
